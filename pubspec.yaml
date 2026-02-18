@@ -1,0 +1,25 @@
+name: lg_flutter_starter_kit
+description: A starter kit for building Liquid Galaxy Flutter applications. Skeleton only — extend, don't modify the core.
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dartssh2: 2.13.0       # SSH connection to LG rig
+  provider: ^6.1.2        # State management (mandatory pattern)
+  shared_preferences: ^2.3.2  # Persist settings across sessions
+  http: ^1.2.1            # HTTP requests (for demo app API calls)
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/                 # sample_flights.json and other static assets go here

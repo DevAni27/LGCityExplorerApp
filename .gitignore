@@ -1,0 +1,30 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+android/local.properties
+android/.gradle/
+android/captures/
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# macOS
+macos/Pods/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Secrets — NEVER commit LG credentials
+# (Settings are stored in shared_preferences on device, not in code)
