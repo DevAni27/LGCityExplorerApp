@@ -26,7 +26,7 @@ Multiple KML files → write multiple URLs, one per line.
 
 ### Slave screen KML
 Each slave has its own KML file at `/var/www/html/kml/slave_<N>.kml`.
-Left screen = slave at index `(rigCount ~/ 2) + 1` — use this formula always.
+Left screen = slave at index `(rigCount ~/ 2) + 2` — use this formula always.
 
 ---
 
