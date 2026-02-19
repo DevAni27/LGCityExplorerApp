@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'controllers/ssh_controller.dart';
 import 'controllers/settings_controller.dart';
 import 'controllers/lg_controller.dart';
+import 'controllers/city_controller.dart';
 import 'views/home/home_page.dart';
 import 'views/settings/settings_page.dart';
 import 'constants/app_constants.dart';
@@ -34,30 +35,39 @@ class LgApp extends StatelessWidget {
         ),
 
         // Layer 2 — LG orchestration (depends on SSH + Settings)
-        ChangeNotifierProxyProvider2<SshController, SettingsController, LgController>(
+        ChangeNotifierProxyProvider2<SshController, SettingsController,
+            LgController>(
           create: (ctx) => LgController(
-            sshController:      ctx.read<SshController>(),
+            sshController: ctx.read<SshController>(),
             settingsController: ctx.read<SettingsController>(),
           ),
           update: (ctx, ssh, settings, prev) =>
-              prev ?? LgController(sshController: ssh, settingsController: settings),
+              prev ??
+              LgController(sshController: ssh, settingsController: settings),
+        ),
+
+        // Layer 3 — App Logic (depends on LgController)
+        ChangeNotifierProxyProvider<LgController, CityController>(
+          create: (ctx) =>
+              CityController(lgController: ctx.read<LgController>()),
+          update: (ctx, lg, prev) => prev ?? CityController(lgController: lg),
         ),
       ],
       child: MaterialApp(
-        title:          kAppName,
+        title: kAppName,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          brightness:       Brightness.dark,
-          primarySwatch:    Colors.blue,
+          brightness: Brightness.dark,
+          primarySwatch: Colors.blue,
           scaffoldBackgroundColor: const Color(0xFF1A1A2E),
           colorScheme: ColorScheme.dark(
-            primary:   Colors.lightBlueAccent,
+            primary: Colors.lightBlueAccent,
             secondary: Colors.blueAccent,
           ),
         ),
         initialRoute: HomePage.routeName,
         routes: {
-          HomePage.routeName:     (_) => const HomePage(),
+          HomePage.routeName: (_) => const HomePage(),
           SettingsPage.routeName: (_) => const SettingsPage(),
         },
       ),

@@ -1,3 +1,6 @@
+import '../models/city_model.dart';
+import '../constants/app_constants.dart';
+
 /// KML generation utilities for Liquid Galaxy applications.
 /// All methods are static — this class is never instantiated.
 /// RULE: Only this file may build KML strings. Never build KML inline elsewhere.
@@ -118,6 +121,71 @@ class KmlHelper {
 </Document>
 </kml>
 ''';
+
+  // ─── LGCityExplorer KML generation ─────────────────────────────────────────
+
+  /// 1. Master: Pin for the city center.
+  static String buildCityPlacemark(CityModel city) {
+    return kmlDocument(
+      name: city.title,
+      innerContent: placemark(
+        name: city.title,
+        lon: city.lon,
+        lat: city.lat,
+        description: city.extract,
+        iconUrl: 'http://maps.google.com/mapfiles/kml/paddle/red-circle.png',
+        iconScale: 1.2,
+      ),
+    );
+  }
+
+  /// 2. Slave: ScreenOverlay (Logo) + Info Balloon (Text).
+  /// Note: Pure KML ScreenOverlays cannot display dynamic text without image generation.
+  /// We use a Balloon attached to the location for the text content.
+  static String buildCityOverlay(CityModel city) {
+    // Extract the content of the logo overlay (minus the header/footer) to merge.
+    // Actually, screen overlays and placemarks can coexist in one Document.
+    // We'll reconstruct the document here for simplicity.
+
+    final logoOverlay = '''
+    <ScreenOverlay>
+      <name>Logo</name>
+      <Icon><href>${_escapeXml(kLgLogoUrl)}</href></Icon>
+      <overlayXY x="0" y="1" xunits="fraction" yunits="fraction"/>
+      <screenXY x="0.02" y="0.95" xunits="fraction" yunits="fraction"/>
+      <size x="0.3" y="0.15" xunits="fraction" yunits="fraction"/>
+    </ScreenOverlay>''';
+
+    final htmlContent = '''
+      <div style="font-family:sans-serif; color:white; width:400px; padding:20px; background-color:rgba(0,0,0,0.7); border-radius:10px;">
+        <h1 style="margin:0; font-size:40px; color:#42a5f5;">${_escapeXml(city.title)}</h1>
+        <hr style="border:1px solid #ddd; margin:10px 0;">
+        <p style="font-size:24px; line-height:1.4;">${_escapeXml(city.extract)}</p>
+      </div>
+    ''';
+
+    final textBalloon = '''
+    <Placemark>
+      <name>Info</name>
+      <description><![CDATA[$htmlContent]]></description>
+      <gx:balloonVisibility>1</gx:balloonVisibility>
+      <Style>
+        <IconStyle><scale>0</scale></IconStyle>
+        <BalloonStyle>
+          <bgColor>00000000</bgColor>
+          <text><![CDATA[$htmlContent]]></text>
+        </BalloonStyle>
+      </Style>
+      <Point>
+        <coordinates>${city.lon},${city.lat},0</coordinates>
+      </Point>
+    </Placemark>''';
+
+    return kmlDocument(
+      name: 'Slave Info',
+      innerContent: '$logoOverlay\n$textBalloon',
+    );
+  }
 
   // ─── XML safety ───────────────────────────────────────────────────────────
 

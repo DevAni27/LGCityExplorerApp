@@ -40,9 +40,15 @@ const Map<String, Map<String, double>> kAirports = {
 
 // ─── OpenSky API ─────────────────────────────────────────────────────────────
 const String kOpenSkyBaseUrl = 'https://opensky-network.org/api';
-const double kDefaultBoundingBoxPad = 2.0; // degrees (~222 km radius)
 const int kOpenSkyRateLimitSeconds = 10;
+const double kDefaultBoundingBoxPad = 2.0;
+
+// ─── Wikipedia REST API ──────────────────────────────────────────────────────
+const String kWikiBaseUrl =
+    'https://en.wikipedia.org/api/rest_v1/page/summary/';
+const String kDefaultWikiImage =
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/200px-Wikipedia-logo-v2.svg.png';
 
 // ─── App strings ─────────────────────────────────────────────────────────────
-const String kAppName = 'LG Flutter Starter Kit';
+const String kAppName = 'LGCityExplorer';
 const String kAppVersion = '1.0.0';

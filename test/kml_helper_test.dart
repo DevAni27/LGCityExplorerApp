@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lg_flutter_starter_kit/helpers/kml_helper.dart';
+import 'package:lg_flutter_starter_kit/models/city_model.dart';
 
 void main() {
   group('KmlHelper', () {
@@ -117,6 +118,29 @@ void main() {
         final result = KmlHelper.getSlaveDefaultKml(2);
         expect(result, contains('slave_2'));
       });
+    });
+  });
+
+  group('City KML', () {
+    const city = CityModel(
+      title: 'Test City',
+      extract: 'A nice place.',
+      lat: 10.0,
+      lon: 20.0,
+    );
+
+    test('buildCityPlacemark contains name and coordinates', () {
+      final kml = KmlHelper.buildCityPlacemark(city);
+      expect(kml, contains('<name>Test City</name>'));
+      expect(kml, contains('20.0,10.0')); // lon,lat
+    });
+
+    test('buildCityOverlay contains logo and balloon text', () {
+      final kml = KmlHelper.buildCityOverlay(city);
+      expect(kml, contains('<ScreenOverlay>'));
+      expect(kml, contains('Test City')); // In balloon HTML
+      expect(kml, contains('A nice place.')); // In balloon HTML
+      expect(kml, contains('<gx:balloonVisibility>1</gx:balloonVisibility>'));
     });
   });
 }

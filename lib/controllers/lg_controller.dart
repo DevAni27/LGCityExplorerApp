@@ -96,29 +96,38 @@ class LgController extends ChangeNotifier {
 
   // ─── Slave screens ───────────────────────────────────────────────────────
 
+  /// Sends a KML string to a specific slave screen.
+  /// If [slaveIndex] is null, defaults to the Left Slave.
+  Future<void> sendKmlToSlave({
+    required BuildContext context,
+    required String kmlContent,
+    int? slaveIndex,
+  }) async {
+    try {
+      final index = slaveIndex ?? _leftSlaveIndex();
+      final path = '${kAppKmlDir}slave_$index.kml';
+
+      await sshController.runCommand(
+        "bash -c 'cat > \"$path\" << \"KMLEOF\"\n$kmlContent\nKMLEOF'",
+      );
+
+      debugPrint('[LgController] KML sent to slave $index');
+    } catch (e) {
+      debugPrint('[LgController] sendKmlToSlave failed: $e');
+      showSnackBar(
+          context: context,
+          message: 'Slave upload failed: $e',
+          color: Colors.red);
+    }
+  }
+
   /// Sends a logo screen overlay to the left slave screen.
   Future<void> sendLogoToLeftSlave({
     required BuildContext context,
     String logoUrl = kLgLogoUrl,
   }) async {
-    try {
-      final leftSlave = _leftSlaveIndex();
-      final path = '${kAppKmlDir}slave_$leftSlave.kml';
-      final kml = KmlHelper.logoOverlayKml(logoUrl);
-      await sshController.runCommand(
-        "bash -lc 'cat > \"$path\" << \"KMLEOF\"\n$kml\nKMLEOF'",
-      );
-      await _setSlaveRefresh(context);
-      debugPrint('[LgController] Logo sent to slave $leftSlave');
-      showSnackBar(
-          context: context,
-          message: 'Logo Sent to left slave',
-          color: Colors.green);
-    } catch (e) {
-      debugPrint('[LgController] sendLogoToLeftSlave failed: $e');
-      showSnackBar(
-          context: context, message: 'Logo failed: $e', color: Colors.red);
-    }
+    final kml = KmlHelper.logoOverlayKml(logoUrl);
+    await sendKmlToSlave(context: context, kmlContent: kml);
   }
 
   // ─── Clean up ────────────────────────────────────────────────────────────

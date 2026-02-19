@@ -1,92 +1,161 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../controllers/ssh_controller.dart';
 import '../../controllers/lg_controller.dart';
-import '../settings/settings_page.dart';
-import '../widgets/connection_status_dot.dart';
-import '../widgets/lg_control_panel.dart';
+import '../../controllers/city_controller.dart';
+import '../../views/settings/settings_page.dart';
+import '../../constants/app_constants.dart';
+import '../widgets/city_info_card.dart';
 
-/// Main home screen of the LG Flutter Starter Kit.
-/// Contains connection status, LG controls, and a placeholder for your app's feature.
-/// To build a new app on this skeleton: replace the [_FeaturePlaceholder] section below.
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
-  static const routeName = '/';
+  static const String routeName = '/';
 
   @override
-  Widget build(BuildContext context) {
-    final isConnected = context.watch<SshController>().isConnected;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF16213E),
-        title: const Text(
-          'LG Flutter Starter Kit',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          ConnectionStatusDot(isConnected: isConnected),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white70),
-            onPressed: () => Navigator.pushNamed(context, SettingsPage.routeName),
-            tooltip: 'LG Settings',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // ── Your app's feature UI goes here ─────────────────────────────
-          const Expanded(child: _FeaturePlaceholder()),
-
-          // ── LG control panel (always visible at bottom) ──────────────────
-          const LgControlPanel(),
-        ],
-      ),
-    );
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-/// Replace this widget with your app's actual feature.
-/// Example: a flight search field, earthquake list, ISS tracker, etc.
-class _FeaturePlaceholder extends StatelessWidget {
-  const _FeaturePlaceholder();
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.public, size: 80, color: Colors.blue.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'Your App Feature Here',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white70,
-              fontWeight: FontWeight.bold,
+    final cityController = context.watch<CityController>();
+    final isConnected =
+        context.select<LgController, bool>((c) => c.sshController.isConnected);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(kAppName),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        actions: [
+          // Connection Indicator
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: Icon(
+              Icons.circle,
+              color: isConnected ? Colors.green : Colors.red,
+              size: 12,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Connect to LG via Settings, then build\nyour feature in this area.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
+          IconButton(
             icon: const Icon(Icons.settings),
-            label: const Text('Open LG Settings'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade700,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            onPressed: () => Navigator.pushNamed(context, SettingsPage.routeName),
+            onPressed: () =>
+                Navigator.pushNamed(context, SettingsPage.routeName),
           ),
         ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Header / Logo area
+            const SizedBox(height: 20),
+            const Icon(Icons.travel_explore,
+                size: 80, color: Colors.blueAccent),
+            const SizedBox(height: 20),
+            Text(
+              'Explore the World',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+            ),
+            const SizedBox(height: 30),
+
+            // Search Bar
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Enter city name (e.g. Paris)',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: _searchController.clear,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.1),
+              ),
+              onSubmitted: (value) => cityController.searchCity(context, value),
+            ),
+            const SizedBox(height: 16),
+
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: cityController.isLoading
+                        ? null
+                        : () {
+                            cityController.searchCity(
+                                context, _searchController.text);
+                            FocusScope.of(context).unfocus();
+                          },
+                    icon: cityController.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.flight_takeoff),
+                    label: const Text('FLY TO CITY'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.blueAccent,
+                      disabledBackgroundColor:
+                          Colors.blueAccent.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    cityController.clear(context);
+                    _searchController.clear();
+                  },
+                  icon:
+                      const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  label: const Text('CLEAR',
+                      style: TextStyle(color: Colors.redAccent)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: Colors.redAccent),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            // Results Area
+            if (cityController.currentCity != null)
+              CityInfoCard(city: cityController.currentCity!)
+            else if (!cityController.isLoading)
+              Column(
+                children: [
+                  const SizedBox(height: 40),
+                  Icon(Icons.public,
+                      size: 60, color: Colors.white.withOpacity(0.1)),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Search for a city to begin',
+                    style: TextStyle(color: Colors.white.withOpacity(0.3)),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
